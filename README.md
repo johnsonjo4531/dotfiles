@@ -7,4 +7,4 @@ Currently here:
 
 ## Tech
 
-These dotfiles use GNU stow and a Makefile
+These dotfiles use GNU Stow
