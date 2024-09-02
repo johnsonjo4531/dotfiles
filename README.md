@@ -8,3 +8,4 @@ Currently here:
 ## Tech
 
 These dotfiles use GNU Stow
+

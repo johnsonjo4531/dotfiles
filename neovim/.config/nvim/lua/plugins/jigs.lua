@@ -13,11 +13,14 @@ return {
     'tidalcycles/vim-tidal'
   },
   {
-    'boltlessengineer/bufterm.nvim',
-    config = true,
-    keys={
-      {"<leader>$", "<cmd>BufTermEnter<cr><cmd>set nornu<cr><cmd>set nonu<cr>", desc = "Toggle Terminal (current buffer)"}
-    }
+    'akinsho/toggleterm.nvim', 
+    version = "*", 
+    config = true, 
+    keys = {
+      {
+        "<leader>$", "<cmd>ToggleTerm direction=horizontal name=default<cr>", desc = "Toggle Terminal"
+      }
+    },
   },
 
   -- add symbols-outline
@@ -25,7 +28,7 @@ return {
     "simrat39/symbols-outline.nvim",
     cmd = "SymbolsOutline",
     keys = { { "<leader>cs", "<cmd>SymbolsOutline<cr>", desc = "Symbols Outline" } },
-    config = true,
+    config = true, 
   },
 
   -- override nvim-cmp and add cmp-emoji
