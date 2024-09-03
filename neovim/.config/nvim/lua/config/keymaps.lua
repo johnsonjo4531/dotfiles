@@ -3,4 +3,4 @@
 -- Add any additional keymaps here
 
 -- Terminal
-vim.keymap.set("n", "<C-$>", "<leader>ws<leader>$", { desc = "Open terminal" })
+vim.keymap.set("n", "<C-LeftMouse>", "gf", { desc = "Open File Under Cursor" })
