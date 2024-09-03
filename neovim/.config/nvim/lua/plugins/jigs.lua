@@ -53,15 +53,6 @@ return {
         desc = "Find Plugin File",
       },
     },
-    -- change some options
-    opts = {
-      defaults = {
-        layout_strategy = "horizontal",
-        layout_config = { prompt_position = "top" },
-        sorting_strategy = "ascending",
-        winblend = 0,
-      },
-    },
   },
 
   -- add telescope-fzf-native
@@ -89,7 +80,6 @@ return {
       },
     },
   },
-
 
   -- for typescript, LazyVim also includes extra specs to properly setup lspconfig,
   -- treesitter, mason and typescript.nvim. So instead of the above, you can use:
@@ -132,24 +122,20 @@ return {
     end,
   },
 
-  -- the opts function can also be used to change the default opts:
   {
-    "nvim-lualine/lualine.nvim",
-    event = "VeryLazy",
-    opts = function(_, opts)
-      table.insert(opts.sections.lualine_x, "😄")
-    end,
-  },
-
-  -- or you can return new options to override all the defaults
-  {
-    "nvim-lualine/lualine.nvim",
-    event = "VeryLazy",
-    opts = function()
-      return {
-        --[[add your custom lualine config here]]
-      }
-    end,
+    "folke/noice.nvim",
+    opts = {
+      routes = {
+        {
+          view = "notify",
+          filter = { event = "msg_showmode" },
+        },
+        {
+          view = "cmdline_output",
+          filter = { cmdline = "^:registers$" },
+        },
+      }, 
+    },
   },
 
   -- use mini.starter instead of alpha
