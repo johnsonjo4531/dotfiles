@@ -77,6 +77,7 @@ return {
         -- pyright will be automatically installed with mason and loaded with lspconfig
         "pyright",
         "clangd",
+        "graphql",
       },
     },
   },
@@ -104,6 +105,7 @@ return {
         "typescript",
         "vim",
         "yaml",
+        "graphql",
       },
     },
   },
@@ -153,6 +155,7 @@ return {
         "shellcheck",
         "shfmt",
         "flake8",
+        "graphql-lsp"  
       },
     },
   },
