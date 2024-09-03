@@ -155,7 +155,8 @@ return {
         "shellcheck",
         "shfmt",
         "flake8",
-        "graphql-lsp"  
+        "graphql-language-service-cli",
+        "graphql-language-service-server",
       },
     },
   },
