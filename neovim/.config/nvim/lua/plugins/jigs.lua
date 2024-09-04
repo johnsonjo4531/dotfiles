@@ -8,6 +8,10 @@
 -- * add extra plugins
 -- * disable/enabled LazyVim plugins
 -- * override the configuration of LazyVim plugins
+
+
+--- for nvchad users, this is in the ~/.config/nvim/lua/mappings.lua file
+
 return {
   {
     'tidalcycles/vim-tidal'
@@ -29,6 +33,33 @@ return {
     cmd = "SymbolsOutline",
     keys = { { "<leader>cs", "<cmd>SymbolsOutline<cr>", desc = "Symbols Outline" } },
     config = true, 
+  },
+
+  {
+    "christoomey/vim-tmux-navigator",
+    remap = true,
+    keys = {
+      { 
+        "<c-h>", 
+        "<cmd><C-U>TmuxNavigateLeft<cr>", 
+        desc="Tmux Navigate Left" 
+      },
+      {
+        "<c-j>", 
+        "<cmd><C-U>TmuxNavigateDown<cr>", 
+        desc="Tmux Navigate Down"
+      },
+      {
+        "<c-k>", 
+        "<cmd><C-U>TmuxNavigateUp<cr>", 
+        desc="Tmux Navigate Up"
+      },
+      {
+        "<c-l>", 
+        "<cmd><C-U>TmuxNavigateRight<cr>", 
+        desc="Tmux Navigate Right"
+      },
+    },
   },
 
   -- override nvim-cmp and add cmp-emoji
@@ -67,20 +98,27 @@ return {
     },
   },
 
-  -- add pyright to lspconfig
---  {
---    "neovim/nvim-lspconfig",
---    ---@class PluginLspOpts
---    opts = function(_, opts)
---      -- add tsx and treesitter
---      print(opts.servers)
---      vim.tbl_deep_extend(opts.servers, {
---        "pyright",
---        "clangd",
---        "graphql",
---      })
---    end,
---  },
+ --  -- add pyright to lspconfig
+ -- {
+ --   "neovim/nvim-lspconfig",
+ --   ---@class PluginLspOpts
+ --   opts = function(_, opts)
+ --     -- add tsx and treesitter
+ --     print(opts.servers)
+ --     vim.tbl_deep_extend(opts.servers, {
+ --       "pyright",
+ --       "clangd",
+ --       "graphql",
+ --     })
+ --   end,
+ -- },
+
+  {
+    'numToStr/Comment.nvim',
+    opts = {
+      -- add any options here
+    }
+  },
   
   -- add more treesitter parsers
   {
