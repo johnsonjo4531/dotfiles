@@ -1,2 +1,2 @@
-*.log
-.tmux/plugins/
+*\.log
+\.tmux/plugins/
