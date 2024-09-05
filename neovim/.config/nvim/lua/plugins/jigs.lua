@@ -9,9 +9,6 @@
 -- * disable/enabled LazyVim plugins
 -- * override the configuration of LazyVim plugins
 
-
---- for nvchad users, this is in the ~/.config/nvim/lua/mappings.lua file
-
 return {
   {
     'tidalcycles/vim-tidal'
@@ -20,10 +17,13 @@ return {
     'akinsho/toggleterm.nvim',
     version = "*",
     config = true,
-    keys = {
+    keys = { 
+      { 
+        "<M-/>", "<cmd>ToggleTerm direction=horizontal name=default<cr>", desc = "Toggle Floating Terminal", mode={"t", "n"}
+      },
       {
-        "<leader>$", "<cmd>ToggleTerm direction=horizontal name=default<cr>", desc = "Toggle Terminal"
-      }
+        "<M-.>", "<cmd>ToggleTerm direction=float name=default<cr>", desc = "Toggle Terminal", mode = {"n", "t"}
+      },
     },
   },
 
@@ -37,7 +37,6 @@ return {
 
   {
     "christoomey/vim-tmux-navigator",
-    remap = true,
     keys = {
       {
         "<c-h>",
@@ -97,21 +96,6 @@ return {
       end,
     },
   },
-
- --  -- add pyright to lspconfig
- -- {
- --   "neovim/nvim-lspconfig",
- --   ---@class PluginLspOpts
- --   opts = function(_, opts)
- --     -- add tsx and treesitter
- --     print(opts.servers)
- --     vim.tbl_deep_extend(opts.servers, {
- --       "pyright",
- --       "clangd",
- --       "graphql",
- --     })
- --   end,
- -- },
 
   {
     'numToStr/Comment.nvim',
@@ -184,7 +168,6 @@ return {
     end,
   },
 
-  -- lazy.nvim:
   {
     "smoka7/multicursors.nvim",
     event = "VeryLazy",
