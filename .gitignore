@@ -1,3 +1,6 @@
 *.log
 */.tmux/plugins
-!tmux-plugins/.tmux/plugins/tpm
+!tmux-plugins/.tmux/plugins/
+tmux-plugins/.tmux/plugins/*
+!tmux-plugins/.tmux/plugins/tpm/
+
