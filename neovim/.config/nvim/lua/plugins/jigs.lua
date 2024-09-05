@@ -17,9 +17,9 @@ return {
     'tidalcycles/vim-tidal'
   },
   {
-    'akinsho/toggleterm.nvim', 
-    version = "*", 
-    config = true, 
+    'akinsho/toggleterm.nvim',
+    version = "*",
+    config = true,
     keys = {
       {
         "<leader>$", "<cmd>ToggleTerm direction=horizontal name=default<cr>", desc = "Toggle Terminal"
@@ -32,31 +32,31 @@ return {
     "simrat39/symbols-outline.nvim",
     cmd = "SymbolsOutline",
     keys = { { "<leader>cs", "<cmd>SymbolsOutline<cr>", desc = "Symbols Outline" } },
-    config = true, 
+    config = true,
   },
 
   {
     "christoomey/vim-tmux-navigator",
     remap = true,
     keys = {
-      { 
-        "<c-h>", 
-        "<cmd><C-U>TmuxNavigateLeft<cr>", 
-        desc="Tmux Navigate Left" 
+      {
+        "<c-h>",
+        "<cmd><C-U>TmuxNavigateLeft<cr>",
+        desc="Tmux Navigate Left"
       },
       {
-        "<c-j>", 
-        "<cmd><C-U>TmuxNavigateDown<cr>", 
+        "<c-j>",
+        "<cmd><C-U>TmuxNavigateDown<cr>",
         desc="Tmux Navigate Down"
       },
       {
-        "<c-k>", 
-        "<cmd><C-U>TmuxNavigateUp<cr>", 
+        "<c-k>",
+        "<cmd><C-U>TmuxNavigateUp<cr>",
         desc="Tmux Navigate Up"
       },
       {
-        "<c-l>", 
-        "<cmd><C-U>TmuxNavigateRight<cr>", 
+        "<c-l>",
+        "<cmd><C-U>TmuxNavigateRight<cr>",
         desc="Tmux Navigate Right"
       },
     },
@@ -119,7 +119,7 @@ return {
       -- add any options here
     }
   },
-  
+
   -- add more treesitter parsers
   {
     "nvim-treesitter/nvim-treesitter",
@@ -160,13 +160,7 @@ return {
         },
       }, 
     },
-  },
-
-  -- use mini.starter instead of alpha
-  { import = "lazyvim.plugins.extras.ui.mini-starter" },
-
-  -- add jsonls and schemastore packages, and setup treesitter for json, json5 and jsonc
-  { import = "lazyvim.plugins.extras.lang.json" },
+  }, 
 
   -- add any tools you want to have installed below
   {

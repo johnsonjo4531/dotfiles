@@ -1,2 +1,3 @@
-*\.log
-\.tmux/plugins/
+*.log
+*/.tmux/plugins
+!tmux-plugins/.tmux/plugins/tpm
