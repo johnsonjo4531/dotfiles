@@ -144,14 +144,19 @@ return {
         "typescript",
       })
     end,
-  }, 
-
+  },
 
   {
     'nvim-neotest/neotest',
     dependencies = {
-      'thenbe/neotest-playwright',
-      dependencies = 'nvim-telescope/telescope.nvim',
+      {
+        'thenbe/neotest-playwright',
+        dependencies = 'nvim-telescope/telescope.nvim',
+      },
+      "nvim-neotest/nvim-nio",
+      "nvim-lua/plenary.nvim",
+      "antoinemadec/FixCursorHold.nvim",
+      "nvim-treesitter/nvim-treesitter",
     },
     config = function()
       require('neotest').setup({
@@ -179,9 +184,9 @@ return {
           view = "cmdline_output",
           filter = { cmdline = "^:registers$" },
         },
-      }, 
+      },
     },
-  }, 
+  },
 
   -- add any tools you want to have installed below
   {
@@ -206,6 +211,7 @@ return {
       return {}
     end,
   },
+
   -- then: setup supertab in cmp
   {
     "hrsh7th/nvim-cmp",
