@@ -152,6 +152,15 @@ return {
       {
         'thenbe/neotest-playwright',
         dependencies = 'nvim-telescope/telescope.nvim',
+        keys = {
+          {
+            '<leader>ta',
+            function()
+              require('neotest').playwright.attachment()
+            end,
+            desc = 'Launch test attachment',
+          },
+        },
       },
       "nvim-neotest/nvim-nio",
       "nvim-lua/plenary.nvim",
@@ -164,13 +173,36 @@ return {
           require('neotest-playwright').adapter({
             options = {
               persist_project_selection = true,
-              enable_dynamic_test_discovery = true,
             },
           }),
+        },
+        consumers = {
+          -- add to your list of consumers
+          playwright = require('neotest-playwright.consumers').consumers,
         },
       })
     end,
   },
+
+  -- lazy.nvim:
+  {
+    "smoka7/multicursors.nvim",
+    event = "VeryLazy",
+    dependencies = {
+      'nvimtools/hydra.nvim',
+    },
+    opts = {},
+    cmd = { 'MCstart', 'MCvisual', 'MCclear', 'MCpattern', 'MCvisualPattern', 'MCunderCursor' },
+    keys = {
+      {
+        mode = { 'v', 'n' },
+        '<Leader>m',
+        '<cmd>MCstart<cr>',
+        desc = 'Create a selection for selected text or word under the cursor',
+      },
+    },
+  },
+
 
   {
     "folke/noice.nvim",
