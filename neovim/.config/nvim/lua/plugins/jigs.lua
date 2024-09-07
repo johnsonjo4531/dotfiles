@@ -9,9 +9,6 @@
 -- * disable/enabled LazyVim plugins
 -- * override the configuration of LazyVim plugins
 
-
---- for nvchad users, this is in the ~/.config/nvim/lua/mappings.lua file
-
 return {
   {
     'tidalcycles/vim-tidal'
@@ -20,10 +17,13 @@ return {
     'akinsho/toggleterm.nvim',
     version = "*",
     config = true,
-    keys = {
+    keys = { 
+      { 
+        "<M-/>", "<cmd>ToggleTerm direction=horizontal name=default<cr>", desc = "Toggle Floating Terminal", mode={"t", "n"}
+      },
       {
-        "<leader>$", "<cmd>ToggleTerm direction=horizontal name=default<cr>", desc = "Toggle Terminal"
-      }
+        "<M-.>", "<cmd>ToggleTerm direction=float name=default<cr>", desc = "Toggle Terminal", mode = {"n", "t"}
+      },
     },
   },
 
@@ -37,7 +37,6 @@ return {
 
   {
     "christoomey/vim-tmux-navigator",
-    remap = true,
     keys = {
       {
         "<c-h>",
@@ -98,21 +97,6 @@ return {
     },
   },
 
- --  -- add pyright to lspconfig
- -- {
- --   "neovim/nvim-lspconfig",
- --   ---@class PluginLspOpts
- --   opts = function(_, opts)
- --     -- add tsx and treesitter
- --     print(opts.servers)
- --     vim.tbl_deep_extend(opts.servers, {
- --       "pyright",
- --       "clangd",
- --       "graphql",
- --     })
- --   end,
- -- },
-
   {
     'numToStr/Comment.nvim',
     opts = {
@@ -152,6 +136,15 @@ return {
       {
         'thenbe/neotest-playwright',
         dependencies = 'nvim-telescope/telescope.nvim',
+        keys = {
+          {
+            '<leader>ta',
+            function()
+              require('neotest').playwright.attachment()
+            end,
+            desc = 'Launch test attachment',
+          },
+        },
       },
       "nvim-neotest/nvim-nio",
       "nvim-lua/plenary.nvim",
@@ -164,13 +157,35 @@ return {
           require('neotest-playwright').adapter({
             options = {
               persist_project_selection = true,
-              enable_dynamic_test_discovery = true,
             },
           }),
+        },
+        consumers = {
+          -- add to your list of consumers
+          playwright = require('neotest-playwright.consumers').consumers,
         },
       })
     end,
   },
+
+  {
+    "smoka7/multicursors.nvim",
+    event = "VeryLazy",
+    dependencies = {
+      'nvimtools/hydra.nvim',
+    },
+    opts = {},
+    cmd = { 'MCstart', 'MCvisual', 'MCclear', 'MCpattern', 'MCvisualPattern', 'MCunderCursor' },
+    keys = {
+      {
+        mode = { 'v', 'n' },
+        '<Leader>m',
+        '<cmd>MCstart<cr>',
+        desc = 'Create a selection for selected text or word under the cursor',
+      },
+    },
+  },
+
 
   {
     "folke/noice.nvim",
