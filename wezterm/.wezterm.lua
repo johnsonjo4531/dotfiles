@@ -25,7 +25,7 @@ local config = spread(wezterm.config_builder())({
 	font = wezterm.font("FiraCode Nerd Font"),
 	window_frame = {
 		font = wezterm.font("FiraCode Nerd Font"),
-		size = 13,
+		font_size = 13,
 	},
 	window_padding = {
 		top = 0,
