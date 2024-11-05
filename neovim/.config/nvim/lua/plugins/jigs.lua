@@ -17,8 +17,8 @@ return {
     'akinsho/toggleterm.nvim',
     version = "*",
     config = true,
-    keys = { 
-      { 
+    keys = {
+      {
         "<M-/>", "<cmd>ToggleTerm direction=horizontal name=default<cr>", desc = "Toggle Floating Terminal", mode={"t", "n"}
       },
       {
@@ -27,6 +27,19 @@ return {
     },
   },
 
+  {
+    "folke/zen-mode.nvim",
+    keys = {
+      { "<leader>z", "<cmd>ZenMode<cr>", desc = "(Toggle) Zen Mode" },
+    },
+    plugins = {
+      wezterm = {
+        enabled = true,
+        -- can be either an absolute font size or the number of incremental steps
+        font = "+4", -- (10% increase per step)
+      },
+    },
+  },
   -- add symbols-outline
   {
     "simrat39/symbols-outline.nvim",
