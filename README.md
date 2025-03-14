@@ -8,6 +8,26 @@ Currently here:
 - tmux
 - scripts for my dotfiles (currently only make-dots which restows my dotfiles if needed)
 
+## Initializing
+
+Install/clone into `~/dotfiles` directory.
+
+```bash
+git clone https://github.com/johnsonjo4531/dotfiles.git ~/dotfiles
+```
+
+Then go into the `~/dotfiles` directory
+
+```
+cd ~/dotfiles
+```
+
+Then run `make`
+
+```bash
+make
+```
+
 ## Tech
 
 These dotfiles use GNU Stow
@@ -25,4 +45,3 @@ These dotfiles use GNU Stow
 - [wezterm](https://github.com/wez/wezterm?tab=readme-ov-file)
 - [fzf](https://github.com/junegunn/fzf)
 - [bat](https://github.com/sharkdp/bat)
--
