@@ -28,6 +28,8 @@ Then run `make`
 make
 ```
 
+That's it!
+
 ## Tech
 
 These dotfiles use GNU Stow
