@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
+git submodule update --init
 ## TMUX
 # Resource tmux
-git submodule update --init
-tmux source ~/.tmux.conf
-
+tmux source ~/.tmux.conf || :
+bat cache --build || :
+source ~/.bash_profile
 ##

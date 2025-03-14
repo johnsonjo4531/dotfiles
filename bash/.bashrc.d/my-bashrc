@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+#### Ensure this is in your .bashrc and uncommented it could already be there though ^\_(0_0)_/^
+# if [ -d ~/.bashrc.d ]; then
+#   for rc in ~/.bashrc.d/*; do
+#     if [ -f "$rc" ]; then
+#       . "$rc"
+#     fi
+#   done
+# fi
+# unset rc
+
+# https://github.com/catppuccin/fzf
+export FZF_DEFAULT_OPTS=" \
+--color=bg+:#363a4f,bg:#24273a,spinner:#f4dbd6,hl:#ed8796 \
+--color=fg:#cad3f5,header:#ed8796,info:#c6a0f6,pointer:#f4dbd6 \
+--color=marker:#b7bdf8,fg+:#cad3f5,prompt:#c6a0f6,hl+:#ed8796 \
+--color=selected-bg:#494d64 \
+--color=border:#363a4f,label:#cad3f5"
+alias ztmx='sesh connect $(sesh list -z | fzf --preview="ls \"{}\"")'
+alias ztmx='sesh connect $(sesh list -z | fzf --preview="ls \"{}\"")'
+alias tmx='sesh connect $(sesh list -c  | fzf)'
+
+export GIT_EDITOR="nvim"
+
+# -f checks whether or not the file exists
+if [[ -v TMUX ]] && [[ -v NVIM ]]; then
+  export WEZTERM_SHELL_SKIP_USER_VARS="1"
+fi
+
+mkcd() {
+  mkdir "$1" && cd "$1"
+}
+
+bat_themes() {
+  bat --list-themes | fzf --preview="bat --theme={} --color=always ""$1"
+}

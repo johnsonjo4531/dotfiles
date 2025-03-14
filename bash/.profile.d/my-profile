@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+#### Ensure this is in your ~/.profile and uncommented it could already be there though ^\_(0_0)_/^
+# if [ -d ~/.profile.d ]; then
+#   for rc in ~/.profile.d/*; do
+#     if [ -f "$rc" ]; then
+#       . "$rc"
+#     fi
+#   done
+# fi
+# unset rc
