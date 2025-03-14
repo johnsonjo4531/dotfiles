@@ -3,3 +3,6 @@ all:
 
 delete:
 	stow --verbose --target=$$HOME --delete */
+
+one_time_install:
+	bash install.sh

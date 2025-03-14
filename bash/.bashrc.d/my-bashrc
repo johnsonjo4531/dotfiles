@@ -23,11 +23,6 @@ alias tmx='sesh connect $(sesh list -c  | fzf)'
 
 export GIT_EDITOR="nvim"
 
-# -f checks whether or not the file exists
-if [[ -v TMUX ]] && [[ -v NVIM ]]; then
-  export WEZTERM_SHELL_SKIP_USER_VARS="1"
-fi
-
 mkcd() {
   mkdir "$1" && cd "$1"
 }
