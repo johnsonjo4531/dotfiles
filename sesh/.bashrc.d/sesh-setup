@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+alias gtmx='sesh connect $(z-git -i | fzf --preview="my_preview {}")'
+alias tmx='sesh connect $({ sesh list -ci; sesh list -ti; z-git -i; } | fzf --ansi --preview="my_preview {}")'

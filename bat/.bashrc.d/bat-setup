@@ -6,8 +6,9 @@ if [[ -x "$(command -v "bat")" ]]; then
   export MANPAGER="sh -c 'sed -u -e \"s/\\x1B\[[0-9;]*m//g; s/.\\x08//g\" | bat -p -lman'"
 fi
 
+export BAT_THEME="Catppuccin Mocha"
+
 ## Requires fzf and bat :P
 bat_themes() {
   bat --list-themes | fzf --preview="bat --theme={} --color=always ""$1"
 }
-

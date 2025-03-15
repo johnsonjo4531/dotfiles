@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+## Zoxide but get only directories with .git in them
+# TODO:
+# Get the list of directories from zoxide
+Input="$(zoxide query -l)"
+
+# Check if Input is empty
+if [[ -z "$Input" ]]; then
+  echo "No directories found using zoxide."
+  exit 1
+fi
+
+# Iterate over each directory in the input
+for dir in $Input; do
+  # Ensure dir is not empty and is a valid path
+  if [[ -n "$dir" && -d "$dir" ]]; then
+    # Check if .git exists within the current directory
+    if [[ -d "$dir/.git" ]]; then
+      if [[ $* == *-i* ]]; then
+        DIR_COLOR=$(echo $LS_COLORS | grep -oP '([:^]di=)\K[^:]+')
+        DIR_ICON=' '
+        echo -e "\033[${DIR_COLOR}m${DIR_ICON}\033[0m$dir"
+      else
+        echo -e "$dir"
+      fi
+    fi
+  fi
+done

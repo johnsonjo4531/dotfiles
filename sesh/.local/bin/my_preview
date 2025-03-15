@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+Z_LIST="$({
+  sesh list -ztci
+  sesh list -ztc
+} | sed -e $'s/\x1b\[[0-9;]*m//g')"
+
+if [[ $Z_LIST == *"$1"* ]]; then
+  sesh preview "$1"
+else
+  DIR_ICON=' '
+  ls --group-directories-first --color="always" "${1//${DIR_ICON}/}"
+fi
