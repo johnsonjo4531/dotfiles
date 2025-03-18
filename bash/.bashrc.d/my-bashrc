@@ -12,6 +12,17 @@
 
 export GIT_EDITOR="nvim"
 
+# Pretty self explanatory...
 mkcd() {
   mkdir "$1" && cd "$1"
 }
+
+# Usage Example:
+# Put "foo" as the contents of the clipboard
+# echo "foo" | pbcopy
+alias pbcopy="xclip -selection clipboard"
+
+# Usage Example:
+# output contents of clipboard to test.txt
+# pbpaste > test.txt
+alias pbpaste="xclip -o"
