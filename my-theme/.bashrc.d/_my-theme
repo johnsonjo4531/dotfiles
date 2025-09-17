@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+if [[ -z "$MY_THEME" ]]; then
+  export MY_THEME="nord"
+fi

@@ -12,7 +12,13 @@
 
 export GIT_EDITOR="nvim"
 
+# Example usage of MY_THEME variable
+# if [["$MY_THEME" == "catppuccin" ]]; then export BAT_THEME="Catppuccin Mocha" fi
+# if [["$MY_THEME" == "nord" ]]; then export BAT_THEME="Nord" fi
+# etc...
+
 # Pretty self explanatory...
+# Stands for make directory and change directory
 mkcd() {
   mkdir "$1" && cd "$1"
 }

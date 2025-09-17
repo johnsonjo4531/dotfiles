@@ -4,5 +4,5 @@ all:
 delete:
 	stow --verbose --target=$$HOME --delete */
 
-one_time_install:
+install:
 	bash install.sh
