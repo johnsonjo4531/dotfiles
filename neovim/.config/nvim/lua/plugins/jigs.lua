@@ -128,15 +128,9 @@ return {
       "nvim-neotest/nvim-nio",
       "nvim-lua/plenary.nvim",
       "antoinemadec/FixCursorHold.nvim",
-      "nvim-treesitter/nvim-treesitter"
-    }
-  },
-
-  {
-    'nvim-neotest/neotest',
-    dependencies = {
+      "nvim-treesitter/nvim-treesitter",
       'thenbe/neotest-playwright',
-        dependencies = 'nvim-telescope/telescope.nvim',
+      dependencies = 'nvim-telescope/telescope.nvim',
     },
     config = function()
       require('neotest').setup({
