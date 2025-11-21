@@ -15,7 +15,28 @@ return {
     'tidalcycles/vim-tidal'
   },
 
-
+  {
+    "olimorris/codecompanion.nvim",
+    opts = {
+      strategies = {
+        chat = {
+          adapter = "ollama",
+          model = "qwen3-coder:30b",
+        },
+        inline = {
+          adapter = "ollama",
+          model = "qwen3-coder:30b",
+        },
+        cmd = {
+          adapter = "ollama",
+          model = "qwen3-coder:30b",
+        },
+      },
+    },
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+    },
+  },
 
   {
     'akinsho/toggleterm.nvim',
