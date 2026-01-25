@@ -10,6 +10,7 @@
 -- * override the configuration of LazyVim plugins
 
 return {
+  { "shaunsingh/nord.nvim" },
   {
     'sainnhe/everforest'
   },
@@ -31,6 +32,30 @@ return {
   {
     'tidalcycles/vim-tidal'
   },
+
+  {
+    "olimorris/codecompanion.nvim",
+    opts = {
+      strategies = {
+        chat = {
+          adapter = "ollama",
+          model = "qwen3-coder:30b",
+        },
+        inline = {
+          adapter = "ollama",
+          model = "qwen3-coder:30b",
+        },
+        cmd = {
+          adapter = "ollama",
+          model = "qwen3-coder:30b",
+        },
+      },
+    },
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+    },
+  },
+
   {
     'akinsho/toggleterm.nvim',
     version = "*",
@@ -163,25 +188,14 @@ return {
   },
 
   {
-    'nvim-neotest/neotest',
+    "nvim-neotest/neotest",
     dependencies = {
-      {
-        'thenbe/neotest-playwright',
-        dependencies = 'nvim-telescope/telescope.nvim',
-        keys = {
-          {
-            '<leader>ta',
-            function()
-              require('neotest').playwright.attachment()
-            end,
-            desc = 'Launch test attachment',
-          },
-        },
-      },
       "nvim-neotest/nvim-nio",
       "nvim-lua/plenary.nvim",
       "antoinemadec/FixCursorHold.nvim",
       "nvim-treesitter/nvim-treesitter",
+      'thenbe/neotest-playwright',
+      dependencies = 'nvim-telescope/telescope.nvim',
     },
     config = function()
       require('neotest').setup({
@@ -192,10 +206,6 @@ return {
               enable_dynamic_test_discovery = true,
             },
           }),
-        },
-        consumers = {
-          -- add to your list of consumers
-          playwright = require('neotest-playwright.consumers').consumers,
         },
       })
     end,

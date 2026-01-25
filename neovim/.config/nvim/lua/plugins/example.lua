@@ -11,6 +11,8 @@ if true then return {} end
 return {
   -- add gruvbox
   { "ellisonleao/gruvbox.nvim" },
+  -- add nord colorscheme
+  { "shaunsingh/nord.nvim" },
 
   -- Configure LazyVim to load gruvbox
   {

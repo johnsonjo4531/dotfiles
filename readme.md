@@ -46,7 +46,7 @@ fi
 unset rc
 ```
 
-Do the same for these lines but put them in your ~/.profile
+Do the same for these lines but put them in your ~/.profile (if they are not already there.)
 
 ```bash
 #### Ensure this is in your ~/.profile and uncommented it could already be there though ^\_(0_0)_/^

@@ -1,0 +1,35 @@
+#!/usr/bin/env source
+
+# If you want the current shell to get the change
+# run this with the source command or the . command
+# Example:
+# . theme
+
+themes="$(cat "$HOME/.config/themes/my-themes.txt")"
+my_theme=""
+if [[ -z "$1" ]]; then
+  my_theme="$(echo "$themes" | fzf --preview="export MY_THEME=\"{}\"; MY_THEME=\"{}\" . \"\$HOME\"/.bashrc.d/*my-theme; echo \"\$BAT_THEME \$MY_THEME\" && bat --color=always \"\$HOME/.local/bin/theme\"")"
+elif awk -v my_theme="$1" 'my_theme = $0' "$themes"; then
+  my_theme="$1"
+else
+  echo "No such color scheme"
+  exit 1
+fi
+unset themes
+
+if [[ -n "$theme" ]]; then
+
+  echo "#!/usr/bin/env bash
+if [[ -z \"\$MY_THEME\" ]]; then
+  export MY_THEME=\"$theme\"
+fi" >"$HOME/.bashrc.d/__my-theme"
+
+  # This is just so the current shell gets the change :(
+  export MY_THEME="$theme"
+  MY_THEME="$theme"
+  unset theme
+  # Re-source the files ending in my-theme
+  . "$HOME"/.bashrc.d/*my-theme
+else
+  unset theme
+fi
