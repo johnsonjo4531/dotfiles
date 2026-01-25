@@ -11,6 +11,24 @@
 
 return {
   {
+    'sainnhe/everforest'
+  },
+  {
+    'shaunsingh/nord.nvim'
+  },
+  {
+    'AlexvZyl/nordic.nvim'
+  },
+  {
+    'everviolet/nvim'
+  },
+  {
+    'LazyVim/LazyVim',
+    opts = {
+      colorscheme = "evergarden-winter"
+    }
+  },
+  {
     'tidalcycles/vim-tidal'
   },
   {
@@ -19,10 +37,10 @@ return {
     config = true,
     keys = {
       {
-        "<M-/>", "<cmd>ToggleTerm direction=horizontal name=default<cr>", desc = "Toggle Floating Terminal", mode={"t", "n"}
+        "<M-/>", "<cmd>ToggleTerm direction=horizontal name=default<cr>", desc = "Toggle Floating Terminal", mode = { "t", "n" }
       },
       {
-        "<M-.>", "<cmd>ToggleTerm direction=float name=default<cr>", desc = "Toggle Terminal", mode = {"n", "t"}
+        "<M-.>", "<cmd>ToggleTerm direction=float name=default<cr>", desc = "Toggle Terminal", mode = { "n", "t" }
       },
     },
   },
@@ -54,22 +72,22 @@ return {
       {
         "<c-h>",
         "<cmd><C-U>TmuxNavigateLeft<cr>",
-        desc="Tmux Navigate Left"
+        desc = "Tmux Navigate Left"
       },
       {
         "<c-j>",
         "<cmd><C-U>TmuxNavigateDown<cr>",
-        desc="Tmux Navigate Down"
+        desc = "Tmux Navigate Down"
       },
       {
         "<c-k>",
         "<cmd><C-U>TmuxNavigateUp<cr>",
-        desc="Tmux Navigate Up"
+        desc = "Tmux Navigate Up"
       },
       {
         "<c-l>",
         "<cmd><C-U>TmuxNavigateRight<cr>",
-        desc="Tmux Navigate Right"
+        desc = "Tmux Navigate Right"
       },
     },
   },
@@ -114,8 +132,34 @@ return {
         "graphql",
         "tsx",
         "typescript",
+        "gdscript",
+        "godot_resource",
+        "gdshader"
       })
     end,
+  },
+
+  -- lazy.nvim
+  {
+    "folke/snacks.nvim",
+    ---@type snacks.Config
+    opts = {
+      explorer = {
+        -- your explorer configuration comes here
+        -- or leave it empty to use the default settings
+        -- refer to the configuration section below
+        exclude = {"*.uid", "*.import"},
+      },
+      picker = {
+        sources = {
+          explorer = {
+            -- your explorer picker configuration comes here
+            -- or leave it empty to use the default settings
+            exclude = {"*.uid", "*.import"},
+          }
+        }
+      }
+    }
   },
 
   {
@@ -195,7 +239,7 @@ return {
 
   -- add any tools you want to have installed below
   {
-    "williamboman/mason.nvim",
+    "mason-org/mason.nvim",
     opts = function(_, opts)
       -- add tsx and treesitter
       vim.list_extend(opts.ensure_installed, {
@@ -208,6 +252,17 @@ return {
     end,
   },
 
+  {
+    'Mathijs-Bakker/godotdev.nvim',
+    dependencies = { 'nvim-lspconfig', 'nvim-dap', 'nvim-dap-ui', 'nvim-treesitter' },
+    opts = {
+      editor_host = "127.0.0.1", -- Godot editor host
+      editor_port = 6005,        -- Godot LSP port
+      debug_port = 6006,         -- Godot debugger port
+      csharp = false,             -- Enable C# Installation Support
+      autostart_editor_server = true,  -- Enable auto start Nvim server
+    }
+  },
   -- Use <tab> for completion and snippets (supertab)
   -- first: disable default <tab> and <s-tab> behavior in LuaSnip
   {
