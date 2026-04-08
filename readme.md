@@ -77,7 +77,7 @@ These dotfiles use GNU Stow
 These are binaries I usually like to use on my systems
 
 - homebrew
-  - then `brew install fzf zoxide sesh bat starship nvim ripgrep` (you will need to install wezterm still manually)
+  - then `brew install fzf zoxide sesh bat starship nvim ripgrep git-delta tmux` (you will need to install wezterm still manually)
 - nvim (neovim)
 - tmux
 - [ripgrep](https://github.com/BurntSushi/ripgrep)
