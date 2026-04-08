@@ -159,7 +159,9 @@ return {
         "typescript",
         "gdscript",
         "godot_resource",
-        "gdshader"
+        "gdshader",
+        "wasm",
+        "wit"
       })
     end,
   },
@@ -258,6 +260,7 @@ return {
         "shfmt",
         "flake8",
         "graphql-language-service-cli",
+        "wasm-language-tools"
       })
     end,
   },
