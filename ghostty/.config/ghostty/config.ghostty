@@ -1,0 +1,9 @@
+# equals doesn't matter.
+# custom-shader = ~/.config/ghostty/shaders/shader.glsl
+# background = ffffff
+# foreground = ffffff
+
+# background-opacity = 0.96
+
+# Empty values reset the configuration to the default value
+font-family =
