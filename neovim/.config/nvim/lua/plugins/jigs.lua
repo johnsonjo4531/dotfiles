@@ -34,6 +34,19 @@ return {
   },
 
   {
+    'xeluxee/competitest.nvim',
+    dependencies = 'MunifTanjim/nui.nvim',
+    config = function() require('competitest').setup() end,
+    keys = {
+      { "<leader>p", "<cmd>CompetiTest<cr>", desc = "CompetiTest" },
+      { "<leader>pa", "<cmd>CompetiTest add_testcase<cr>", desc = "CompetiTest add testcase" },
+      { "<leader>pe", "<cmd>CompetiTest edit_testcase<cr>", desc = "CompetiTest edit testcase" },
+      { "<leader>pr", "<cmd>CompetiTest run<cr>", desc = "CompetiTest run" },
+      { "<leader>pu", "<cmd>CompetiTest show_ui<cr>", desc = "CompetiTest UI" },
+    },
+  },
+
+  {
     "olimorris/codecompanion.nvim",
     opts = {
       strategies = {
@@ -260,7 +273,8 @@ return {
         "shfmt",
         "flake8",
         "graphql-language-service-cli",
-        "wasm-language-tools"
+        "wasm-language-tools",
+        "clangd"
       })
     end,
   },
