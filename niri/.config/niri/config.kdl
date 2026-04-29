@@ -268,9 +268,15 @@ layout {
 // See the binds section below for more spawn examples.
 
 // This line starts waybar, a commonly used bar for Wayland compositors.
-spawn-at-startup "waybar"
 spawn-at-startup "vicinae" "server"
 
+window-rule {
+    match is-window-cast-target=true
+
+    focus-ring {
+        active-gradient from="#f38ba8ee" to="#cc241dee" angle=45
+    }
+}
 
 
 // To run a shell command (with variables, pipes, etc.), use spawn-sh-at-startup:
@@ -330,6 +336,28 @@ window-rule {
     open-floating true
 }
 
+// Block out password managers from screencasts.
+window-rule {
+    match app-id=r#"^org\.keepassxc\.KeePassXC$"#
+    match app-id=r#"^org\.gnome\.World\.Secrets$"#
+    match app-id=r#"^1password"#
+
+    block-out-from "screencast"
+}
+
+window-rule {
+  // Rounded corners for a modern look.
+  geometry-corner-radius 15
+
+  // Clips window contents to the rounded corner boundaries.
+  clip-to-geometry true
+}
+
+window-rule {
+  opacity 0.9
+}
+
+
 // Example: block out two password managers from screen capture.
 // (This example rule is commented out with a "/-" in front.)
 /-window-rule {
@@ -364,11 +392,11 @@ binds {
     // shows a list of important hotkeys.
     Mod+Shift+Slash { show-hotkey-overlay; }
 
-
+    Mod+E hotkey-overlay-title="File Manager" { spawn "nautilus"; }
     Mod+Space repeat=false { spawn "vicinae" "toggle"; }
 
     // Suggested binds for running programs: terminal, app launcher, screen locker.
-    Mod+T hotkey-overlay-title="Open a Terminal: alacritty" { spawn "alacritty"; }
+    Mod+T hotkey-overlay-title="Open a Terminal: ghostty" { spawn "ghostty"; }
     Mod+D hotkey-overlay-title="Run an Application: fuzzel" { spawn "fuzzel"; }
     Super+Alt+L hotkey-overlay-title="Lock the Screen: swaylock" { spawn "swaylock"; }
 
@@ -614,6 +642,7 @@ binds {
     // Mod+Space       { switch-layout "next"; }
     // Mod+Shift+Space { switch-layout "prev"; }
 
+    Mod+Shift+S { screenshot; }
     Print { screenshot; }
     Ctrl+Print { screenshot-screen; }
     Alt+Print { screenshot-window; }
@@ -639,3 +668,5 @@ binds {
 
 include "dms/outputs.kdl"
 include "dms/binds.kdl"
+
+include "dms/windowrules.kdl"
