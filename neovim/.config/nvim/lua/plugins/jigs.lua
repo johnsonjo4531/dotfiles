@@ -30,6 +30,9 @@ return {
     }
   },
   {
+    "David-Kunz/jester"
+  },
+  {
     'tidalcycles/vim-tidal'
   },
 
