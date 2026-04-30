@@ -66,7 +66,7 @@ input {
 
     // Focus windows and outputs automatically when moving the mouse into them.
     // Setting max-scroll-amount="0%" makes it work only on windows already fully on screen.
-    // focus-follows-mouse max-scroll-amount="0%"
+    focus-follows-mouse max-scroll-amount="0%"
 }
 
 // You can configure outputs by their name, which you can find
@@ -112,6 +112,15 @@ input {
 layout {
     // Set gaps around windows in logical pixels.
     gaps 16
+
+    // Make the tab indicator wider and match the window height,
+    // also put it at the top and within the column.
+    tab-indicator {
+        width 12
+        gap 12
+        length total-proportion=0.95
+        place-within-column
+    }
 
     // When to center a column when changing focus, options are:
     // - "never", default behavior, focusing an off-screen column will keep at the left
@@ -354,8 +363,43 @@ window-rule {
 }
 
 window-rule {
-  opacity 0.9
+  opacity 0.90
+
+  background-effect {
+    blur true
+  }
+
 }
+
+
+// Add a shadow for fuzzel.
+layer-rule {
+    match namespace="^launcher$"
+
+    shadow {
+        on
+    } 
+    // Fuzzel defaults to 10 px rounded corners.
+    geometry-corner-radius 27
+
+    background-effect {
+
+      blur true
+    }
+
+
+}
+
+// Put swaybg inside the overview backdrop.
+layer-rule {
+    // This is for swaybg; change for other wallpaper tools.
+    // Find the right namespace by running niri msg layers.
+    match namespace="^wallpaper$"
+    place-within-backdrop true
+    geometry-corner-radius 27
+}
+
+
 
 
 // Example: block out two password managers from screen capture.
