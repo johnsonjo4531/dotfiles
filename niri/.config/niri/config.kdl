@@ -40,6 +40,7 @@ input {
         // accel-profile "flat"
         // scroll-method "two-finger"
         // disabled-on-external-mouse
+        click-method "clickfinger"
     }
 
     mouse {
@@ -62,7 +63,7 @@ input {
     }
 
     // Uncomment this to make the mouse warp to the center of newly focused windows.
-    // warp-mouse-to-focus
+    warp-mouse-to-focus mode="center-xy-always"
 
     // Focus windows and outputs automatically when moving the mouse into them.
     // Setting max-scroll-amount="0%" makes it work only on windows already fully on screen.
@@ -191,13 +192,13 @@ layout {
         // You can use any CSS linear-gradient tool on the web to set these up.
         // Changing the color space is also supported, check the wiki for more info.
         //
-        // active-gradient from="#80c8ff" to="#c7ff7f" angle=45
+        active-gradient from="#80c8ffcc" to="#c7ffffcc" angle=45
 
         // You can also color the gradient relative to the entire view
         // of the workspace, rather than relative to just the window itself.
         // To do that, set relative-to="workspace-view".
         //
-        // inactive-gradient from="#505050" to="#808080" angle=45 relative-to="workspace-view"
+        inactive-gradient from="#505050" to="#808080" angle=45 relative-to="workspace-view"
     }
 
     // You can also add a border. It's similar to the focus ring, but always visible.
@@ -224,7 +225,7 @@ layout {
     // You can enable drop shadows for windows.
     shadow {
         // Uncomment the next line to enable shadows.
-        // on
+        on
 
         // By default, the shadow draws only around its window, and not behind it.
         // Uncomment this setting to make the shadow draw behind its window.
@@ -246,16 +247,16 @@ layout {
         // pixels and match the CSS box-shadow properties.
 
         // Softness controls the shadow blur radius.
-        softness 30
+        softness 7
 
         // Spread expands the shadow.
-        spread 5
+        spread 10
 
         // Offset moves the shadow relative to the window.
-        offset x=0 y=5
+        offset x=2 y=2
 
         // You can also change the shadow color and opacity.
-        color "#0007"
+        color "#2226"
     }
 
     // Struts shrink the area occupied by windows, similarly to layer-shell panels.
@@ -365,9 +366,9 @@ window-rule {
 window-rule {
   opacity 0.90
 
-  background-effect {
-    blur true
-  }
+  // background-effect {
+  //   blur true
+  // }
 
 }
 
@@ -382,10 +383,10 @@ layer-rule {
     // Fuzzel defaults to 10 px rounded corners.
     geometry-corner-radius 27
 
-    background-effect {
-
-      blur true
-    }
+    // background-effect {
+    //
+    //   blur true
+    // }
 
 
 }
