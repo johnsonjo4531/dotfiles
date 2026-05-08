@@ -716,7 +716,7 @@ include "dms/outputs.kdl"
 include "dms/binds.kdl"
 
 include "dms/windowrules.kdl"
-include "newer-niri.kdl"
-include "ubuntu-machine.kdl"
-// include "single-monitor.kdl"
+// include "newer-niri.kdl"
+// include "ubuntu-machine.kdl"
+include "single-monitor.kdl"
 
