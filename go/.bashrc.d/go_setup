@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+# set PATH so it includes user's go bin if it exists
+if [ -d /usr/local/go ]; then
+  export PATH="/usr/local/go/bin:$PATH"
+fi
+
+# Auto-switching: Setting GOTOOLCHAIN=auto allows Go to automatically download
+# and use the version specified in a project's go.mod file if it differs from
+# the currently installed version.
+export GOTOOLCHAIN=auto
