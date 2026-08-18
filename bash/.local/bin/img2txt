@@ -1,0 +1,127 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+source "$HOME/dotfiles/bash/.bashrc.d/_my-bashrc"
+
+usage() {
+  cat <<'EOF'
+Usage:
+  img2txt [OPTIONS] [IMAGE]
+
+Extract text from an image using a local llama.cpp vision model.
+
+If IMAGE is omitted, the image is read from the clipboard.
+
+Options:
+  -c, --copy    Copy extracted text to the clipboard
+  -h, --help    Show this help message
+
+Examples:
+  img2txt
+      Extract text from the clipboard image and print it.
+
+  img2txt --copy
+      Extract text from the clipboard image and copy the result.
+
+  img2txt screenshot.png
+      Extract text from screenshot.png and print it.
+
+  img2txt screenshot.png --copy
+      Extract text from screenshot.png and copy the result.
+
+Requirements:
+  - llama-server running on localhost:8080
+  - curl
+  - jq
+  - base64
+  - pbpaste/pbcopy
+
+Model:
+  unsloth/Qwen3.6-35B-A3B-MTP-GGUF:IQ2_M
+EOF
+}
+
+img=""
+copy=false
+
+for arg in "$@"; do
+  case "$arg" in
+  --copy | -c)
+    copy=true
+    ;;
+  --help | -h)
+    usage
+    exit 0
+    ;;
+  -*)
+    echo "img2txt: unknown option: $arg" >&2
+    echo "Try 'img2txt --help' for more information." >&2
+    exit 1
+    ;;
+  *)
+    if [[ -n "$img" ]]; then
+      echo "img2txt: too many arguments" >&2
+      echo "Try 'img2txt --help' for more information." >&2
+      exit 1
+    fi
+    img="$arg"
+    ;;
+  esac
+done
+
+if [[ -n "$img" ]]; then
+  if [[ ! -f "$img" ]]; then
+    echo "img2txt: file not found: $img" >&2
+    exit 1
+  fi
+else
+  img=$(mktemp --suffix=.png)
+  trap 'rm -f "$img"' EXIT
+  pbpaste >"$img"
+fi
+
+b64=$(mktemp)
+base64 -w0 "$img" >"$b64"
+payload=$(mktemp --suffix=.json)
+trap 'rm -f "$payload"' EXIT
+
+jq -n \
+  --rawfile image "$b64" \
+  '{
+    model: "unsloth/Qwen3.6-35B-A3B-MTP-GGUF:IQ2_M",
+    messages: [{
+      role: "user",
+      content: [
+        {
+          type: "image_url",
+          image_url: {
+            url: ("data:image/png;base64," + $image)
+          }
+        },
+        {
+          type: "text",
+          text: "Extract all text from the image. Return only the text visible in the image."
+        }
+      ]
+    }],
+    temperature: 0,
+    max_tokens: 4096
+  }' >"$payload"
+if ! response=$(
+  curl -s http://localhost:8080/v1/chat/completions \
+    -H 'Content-Type: application/json' \
+    --data-binary "@$payload"
+); then
+  echo "img2txt: llama-server request failed." >&2
+  echo "img2txt: is llama-server running on localhost:8080?" >&2
+  exit 1
+fi
+
+result=$(jq -r '.choices[0].message.content' <<<"$response")
+
+if [[ "$copy" == true ]]; then
+  printf '%s' "$result" | pbcopy
+else
+  printf '%s\n' "$result"
+fi

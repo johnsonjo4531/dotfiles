@@ -1,0 +1,369 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+VISION_URL="${VISION_URL:-http://127.0.0.1:8080/v1/chat/completions}"
+VISION_MODEL="${VISION_MODEL:-unsloth/Qwen3.6-35B-A3B-MTP-GGUF:IQ2_M}"
+VISION_TEMPERATURE="${VISION_TEMPERATURE:-0.1}"
+VISION_MAX_TOKENS="${VISION_MAX_TOKENS:-4096}"
+
+TMP_DIR=""
+
+usage() {
+  cat >&2 <<'EOF'
+Usage:
+  vision [options] "prompt" image1 [image2 ...]
+
+Options:
+  --url URL
+  --model MODEL
+  --temperature N
+  --max-tokens N
+
+Examples:
+  vision "Describe this GUI in detail" screenshot.png
+
+  vision \
+    "Compare these two GUI screenshots" \
+    current.png target.png
+EOF
+  exit 2
+}
+
+cleanup() {
+  if [[ -n "${TMP_DIR:-}" && -d "$TMP_DIR" ]]; then
+    rm -rf "$TMP_DIR"
+  fi
+}
+
+trap cleanup EXIT
+
+# ---------------------------------------------------------------------------
+# Loading indicator
+#
+# All progress output goes to stderr so stdout contains ONLY the model's
+# response.
+# ---------------------------------------------------------------------------
+
+SPINNER_PID=""
+
+start_spinner() {
+  local message="$1"
+
+  # Don't animate when stderr isn't a terminal.
+  if [[ ! -t 2 ]]; then
+    printf '[vision] %s\n' "$message" >&2
+    return
+  fi
+
+  (
+    local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
+    local i=0
+
+    while true; do
+      printf '\r[vision] %s %s' "$message" "${frames[$i]}" >&2
+      i=$(((i + 1) % ${#frames[@]}))
+      sleep 0.1
+    done
+  ) &
+
+  SPINNER_PID=$!
+}
+
+stop_spinner() {
+  if [[ -n "$SPINNER_PID" ]]; then
+    kill "$SPINNER_PID" 2>/dev/null || true
+    wait "$SPINNER_PID" 2>/dev/null || true
+    SPINNER_PID=""
+  fi
+
+  if [[ -t 2 ]]; then
+    printf '\r\033[2K' >&2
+  fi
+}
+
+run_with_spinner() {
+  local message="$1"
+  shift
+
+  start_spinner "$message"
+
+  local status=0
+
+  "$@" || status=$?
+
+  stop_spinner
+
+  return "$status"
+}
+
+progress() {
+  printf '[vision] %s\n' "$1" >&2
+}
+
+success() {
+  printf '[vision] ✓ %s\n' "$1" >&2
+}
+
+error() {
+  printf '[vision] ✗ %s\n' "$1" >&2
+}
+
+# ---------------------------------------------------------------------------
+# Parse options
+# ---------------------------------------------------------------------------
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+  --url)
+    [[ $# -ge 2 ]] || usage
+    VISION_URL="$2"
+    shift 2
+    ;;
+
+  --model)
+    [[ $# -ge 2 ]] || usage
+    VISION_MODEL="$2"
+    shift 2
+    ;;
+
+  --temperature)
+    [[ $# -ge 2 ]] || usage
+    VISION_TEMPERATURE="$2"
+    shift 2
+    ;;
+
+  --max-tokens)
+    [[ $# -ge 2 ]] || usage
+    VISION_MAX_TOKENS="$2"
+    shift 2
+    ;;
+
+  --)
+    shift
+    break
+    ;;
+
+  -*)
+    error "Unknown option: $1"
+    usage
+    ;;
+
+  *)
+    break
+    ;;
+  esac
+done
+
+if [[ $# -lt 2 ]]; then
+  usage
+fi
+
+PROMPT="$1"
+shift
+
+if [[ $# -lt 1 ]]; then
+  error "At least one image is required."
+  exit 2
+fi
+
+# ---------------------------------------------------------------------------
+# Validate dependencies
+# ---------------------------------------------------------------------------
+
+for command in curl jq base64 file; do
+  if ! command -v "$command" >/dev/null 2>&1; then
+    error "Required command not found: $command"
+    exit 1
+  fi
+done
+
+# ---------------------------------------------------------------------------
+# Validate images
+# ---------------------------------------------------------------------------
+
+IMAGE_COUNT=$#
+
+progress "Checking $IMAGE_COUNT image(s)..."
+
+for image in "$@"; do
+  if [[ ! -f "$image" ]]; then
+    error "Image does not exist: $image"
+    exit 1
+  fi
+
+  if [[ ! -r "$image" ]]; then
+    error "Image is not readable: $image"
+    exit 1
+  fi
+done
+
+success "Images validated"
+
+# ---------------------------------------------------------------------------
+# Create temporary workspace
+# ---------------------------------------------------------------------------
+
+TMP_DIR="$(mktemp -d)"
+
+CONTENT_FILE="$TMP_DIR/content.json"
+
+# ---------------------------------------------------------------------------
+# Build initial content array
+# ---------------------------------------------------------------------------
+
+jq -n --arg prompt "$PROMPT" \
+  '[{
+        "type": "text",
+        "text": $prompt
+    }]' >"$CONTENT_FILE"
+
+# ---------------------------------------------------------------------------
+# Encode images
+#
+# IMPORTANT:
+# Never put base64 data into a shell variable.
+# ---------------------------------------------------------------------------
+
+IMAGE_INDEX=0
+
+for image in "$@"; do
+  IMAGE_NUMBER=$((IMAGE_INDEX + 1))
+
+  progress "Encoding image $IMAGE_NUMBER/$IMAGE_COUNT: $image"
+
+  mime_type="$(file --mime-type -b "$image")"
+
+  case "$mime_type" in
+  image/jpeg | image/png | image/webp | image/gif)
+    ;;
+  *)
+    progress "Warning: unusual MIME type '$mime_type'"
+    ;;
+  esac
+
+  encoded_file="$TMP_DIR/image-${IMAGE_INDEX}.b64"
+
+  base64 -w 0 "$image" >"$encoded_file"
+
+  jq \
+    --rawfile b64 "$encoded_file" \
+    --arg mime "$mime_type" \
+    '. + [{
+            "type": "image_url",
+            "image_url": {
+                "url": ("data:" + $mime + ";base64," + $b64)
+            }
+        }]' \
+    "$CONTENT_FILE" >"$CONTENT_FILE.tmp"
+
+  mv "$CONTENT_FILE.tmp" "$CONTENT_FILE"
+
+  IMAGE_INDEX=$((IMAGE_INDEX + 1))
+done
+
+success "Images encoded"
+
+# ---------------------------------------------------------------------------
+# Build request
+# ---------------------------------------------------------------------------
+
+REQUEST_FILE="$TMP_DIR/request.json"
+
+progress "Building vision model request..."
+
+jq -n \
+  --arg model "$VISION_MODEL" \
+  --arg prompt "$PROMPT" \
+  --argjson temperature "$VISION_TEMPERATURE" \
+  --argjson max_tokens "$VISION_MAX_TOKENS" \
+  '{
+    model: $model,
+    temperature: $temperature,
+    max_tokens: $max_tokens,
+    messages: [{
+      role: "user",
+      content: [{
+        type: "text",
+        text: $prompt
+      }]
+    }]
+  }' >"$REQUEST_FILE"
+
+IMAGE_INDEX=0
+
+for image in "$@"; do
+  IMAGE_NUMBER=$((IMAGE_INDEX + 1))
+
+  progress "Adding image $IMAGE_NUMBER/$IMAGE_COUNT to request..."
+
+  mime_type="$(file --mime-type -b "$image")"
+  encoded_file="$TMP_DIR/image-${IMAGE_INDEX}.b64"
+
+  base64 -w 0 "$image" >"$encoded_file"
+
+  jq \
+    --rawfile b64 "$encoded_file" \
+    --arg mime "$mime_type" \
+    '.messages[0].content += [{
+      type: "image_url",
+      image_url: {
+        url: ("data:" + $mime + ";base64," + $b64)
+      }
+    }]' \
+    "$REQUEST_FILE" >"$REQUEST_FILE.tmp"
+
+  mv "$REQUEST_FILE.tmp" "$REQUEST_FILE"
+
+  IMAGE_INDEX=$((IMAGE_INDEX + 1))
+done
+
+success "Request prepared"# ---------------------------------------------------------------------------
+# Send request
+# ---------------------------------------------------------------------------
+
+RESPONSE_FILE="$TMP_DIR/response.json"
+
+start_spinner "Waiting for vision model response..."
+
+HTTP_STATUS="$(
+  curl \
+    --silent \
+    --show-error \
+    --write-out '%{http_code}' \
+    --output "$RESPONSE_FILE" \
+    --header 'Content-Type: application/json' \
+    --data-binary "@$REQUEST_FILE" \
+    "$VISION_URL"
+)" || CURL_STATUS=$?
+
+CURL_STATUS="${CURL_STATUS:-0}"
+
+stop_spinner
+
+if [[ "$CURL_STATUS" -ne 0 ]]; then
+  error "Could not connect to vision server"
+  exit "$CURL_STATUS"
+fi
+
+if [[ "$HTTP_STATUS" -lt 200 || "$HTTP_STATUS" -ge 300 ]]; then
+  error "Vision model returned HTTP $HTTP_STATUS"
+  cat "$RESPONSE_FILE" >&2
+  exit 1
+fi
+
+success "Vision model response received"
+
+# ---------------------------------------------------------------------------
+# Extract response
+# ---------------------------------------------------------------------------
+
+if ! jq -e '.choices[0].message.content' \
+  "$RESPONSE_FILE" >/dev/null 2>&1; then
+
+  error "Vision server returned an unexpected response:"
+  cat "$RESPONSE_FILE" >&2
+  exit 1
+fi
+
+jq -r '.choices[0].message.content' "$RESPONSE_FILE"

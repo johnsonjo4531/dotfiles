@@ -279,6 +279,7 @@ return {
   },
 
   -- add any tools you want to have installed below
+  -- Mason for lsps
   {
     "mason-org/mason.nvim",
     opts = function(_, opts)
@@ -288,7 +289,7 @@ return {
         "shellcheck",
         "shfmt",
         "flake8",
-        "graphql-language-service-cli",
+        -- "graphql-language-service-cli",
         "wasm-language-tools",
         "clangd"
       })

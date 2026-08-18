@@ -25,13 +25,22 @@ alias sc='sudo -E systemctl'
 mkcd() {
   mkdir "$1" && cd "$1"
 }
+if [[ "$XDG_SESSION_TYPE" == "wayland" ]]; then
+  pbcopy() {
+    wl-copy
+  }
 
-# Usage Example:
-# Put "foo" as the contents of the clipboard
-# echo "foo" | pbcopy
-alias pbcopy="xclip -selection clipboard"
+  pbpaste() {
+    wl-paste
+  }
+else
+  pbcopy() {
+    xclip -selection clipboard
+  }
 
-# Usage Example:
-# output contents of clipboard to test.txt
-# pbpaste > test.txt
-alias pbpaste="xclip -o"
+  pbpaste() {
+    xclip -selection clipboard -o
+  }
+fi
+
+export SUDO_EDITOR="nvim"
