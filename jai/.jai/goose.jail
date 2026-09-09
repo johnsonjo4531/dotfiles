@@ -1,0 +1,7 @@
+conf .defaults
+conf .nodejs
+conf .playwright
+conf .skills
+conf .localbin
+conf goose.conf
+mode strict

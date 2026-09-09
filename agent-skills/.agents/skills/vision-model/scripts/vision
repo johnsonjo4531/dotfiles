@@ -1,0 +1,661 @@
+#!/usr/bin/env node
+
+import fs from "node:fs";
+import fsp from "node:fs/promises";
+import path from "node:path";
+import process from "node:process";
+
+const DEFAULT_URL = "http://127.0.0.1:8080/v1/chat/completions";
+
+const FALLBACK_MODEL = "unsloth/Qwen3.8-27B-GGUF:Q4_K_XL";
+
+let VISION_URL = process.env.VISION_URL ?? DEFAULT_URL;
+
+let VISION_MODEL = process.env.VISION_MODEL;
+
+const VISION_TEMPERATURE = process.env.VISION_TEMPERATURE ?? "0.1";
+
+const VISION_MAX_TOKENS = process.env.VISION_MAX_TOKENS ?? "10096";
+
+let spinnerTimer = null;
+let spinnerActive = false;
+
+const MIME_TYPES = {
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+  ".webp": "image/webp",
+  ".gif": "image/gif",
+};
+
+// ---------------------------------------------------------------------------
+// Output helpers
+// ---------------------------------------------------------------------------
+
+function progress(message) {
+  process.stderr.write(`[vision] ${message}\n`);
+}
+
+function success(message) {
+  process.stderr.write(`[vision] ✓ ${message}\n`);
+}
+
+function error(message) {
+  process.stderr.write(`[vision] ✗ ${message}\n`);
+}
+
+// ---------------------------------------------------------------------------
+// Usage
+// ---------------------------------------------------------------------------
+
+function usage(exitCode = 2) {
+  process.stderr.write(`
+Usage:
+  vision [options] "prompt" image1 [image2 ...]
+
+Send one or more images to a local vision-language model.
+
+The prompt may request any vision task, including:
+  - Image description and analysis
+  - OCR and text extraction
+  - UI/screenshot analysis
+  - Visual comparison/diffing
+  - Image understanding
+  - Identifying objects, layouts, or visual relationships
+
+Options:
+  --url URL
+  --model MODEL
+  --temperature N
+  --max-tokens N
+
+Examples:
+  vision "Describe this image in detail" screenshot.png
+
+  vision \\
+    "Compare IMAGE 1 and IMAGE 2 and identify every visual difference" \\
+    current.png target.png
+
+  vision \\
+    "Extract all visible text from this image" \\
+    screenshot.png
+`);
+
+  process.exit(exitCode);
+}
+
+// ---------------------------------------------------------------------------
+// Spinner
+// ---------------------------------------------------------------------------
+
+function startSpinner(message) {
+  if (!process.stderr.isTTY) {
+    process.stderr.write(`[vision] ${message}\n`);
+    return;
+  }
+
+  const frames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+
+  let i = 0;
+  spinnerActive = true;
+
+  process.stderr.write(`\r[vision] ${message} ${frames[i]}`);
+
+  spinnerTimer = setInterval(() => {
+    i = (i + 1) % frames.length;
+
+    process.stderr.write(`\r[vision] ${message} ${frames[i]}`);
+  }, 100);
+}
+
+function stopSpinner() {
+  if (spinnerTimer !== null) {
+    clearInterval(spinnerTimer);
+    spinnerTimer = null;
+  }
+
+  if (spinnerActive && process.stderr.isTTY) {
+    process.stderr.write("\r\x1b[2K");
+  }
+
+  spinnerActive = false;
+}
+
+// ---------------------------------------------------------------------------
+// Cleanup
+// ---------------------------------------------------------------------------
+
+function cleanup() {
+  stopSpinner();
+}
+
+process.on("exit", cleanup);
+
+process.on("SIGINT", () => {
+  cleanup();
+  process.exit(130);
+});
+
+process.on("SIGTERM", () => {
+  cleanup();
+  process.exit(143);
+});
+
+// ---------------------------------------------------------------------------
+// CLI parsing
+// ---------------------------------------------------------------------------
+
+function parseArgs(args) {
+  const options = {
+    url: VISION_URL,
+    model: VISION_MODEL,
+    temperature: VISION_TEMPERATURE,
+    maxTokens: VISION_MAX_TOKENS,
+  };
+
+  const positional = [];
+
+  let i = 0;
+
+  while (i < args.length) {
+    const arg = args[i];
+
+    switch (arg) {
+      case "--url":
+        if (i + 1 >= args.length) {
+          usage();
+        }
+
+        options.url = args[++i];
+        break;
+
+      case "--model":
+        if (i + 1 >= args.length) {
+          usage();
+        }
+
+        options.model = args[++i];
+        break;
+
+      case "--temperature":
+        if (i + 1 >= args.length) {
+          usage();
+        }
+
+        options.temperature = args[++i];
+        break;
+
+      case "--max-tokens":
+        if (i + 1 >= args.length) {
+          usage();
+        }
+
+        options.maxTokens = args[++i];
+        break;
+
+      case "--":
+        positional.push(...args.slice(i + 1));
+        i = args.length;
+        continue;
+
+      default:
+        if (arg.startsWith("-")) {
+          error(`Unknown option: ${arg}`);
+          usage();
+        }
+
+        positional.push(arg);
+        break;
+    }
+
+    i++;
+  }
+
+  if (positional.length < 2) {
+    usage();
+  }
+
+  return {
+    ...options,
+    prompt: positional[0],
+    images: positional.slice(1),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Model discovery
+// ---------------------------------------------------------------------------
+
+async function getLoadedModel(url) {
+  const modelsUrl = new URL(url);
+
+  modelsUrl.pathname = modelsUrl.pathname.replace(
+    /\/v1\/chat\/completions\/?$/,
+    "/v1/models",
+  );
+
+  if (modelsUrl.pathname === url) {
+    modelsUrl.pathname = "/v1/models";
+  }
+
+  try {
+    const response = await fetch(modelsUrl);
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} ${response.statusText}`);
+    }
+
+    const body = await response.json();
+
+    const loadedModel = body.data?.find(
+      (model) => model?.status?.value === "loaded",
+    );
+
+    return loadedModel?.id;
+  } catch {
+    return undefined;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// MIME detection
+// ---------------------------------------------------------------------------
+
+async function detectMimeType(filePath) {
+  const extension = path.extname(filePath).toLowerCase();
+
+  const expectedMime = MIME_TYPES[extension];
+
+  const handle = await fsp.open(filePath, "r");
+
+  try {
+    const buffer = Buffer.alloc(16);
+
+    await handle.read(buffer, 0, buffer.length, 0);
+
+    // JPEG
+    if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+      return "image/jpeg";
+    }
+
+    // PNG
+    if (
+      buffer
+        .subarray(0, 8)
+        .equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))
+    ) {
+      return "image/png";
+    }
+
+    // GIF
+    if (
+      buffer.subarray(0, 6).toString("ascii") === "GIF87a" ||
+      buffer.subarray(0, 6).toString("ascii") === "GIF89a"
+    ) {
+      return "image/gif";
+    }
+
+    // WebP
+    if (
+      buffer.subarray(0, 4).toString("ascii") === "RIFF" &&
+      buffer.subarray(8, 12).toString("ascii") === "WEBP"
+    ) {
+      return "image/webp";
+    }
+
+    if (expectedMime) {
+      return expectedMime;
+    }
+
+    return null;
+  } finally {
+    await handle.close();
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Image validation
+// ---------------------------------------------------------------------------
+
+async function validateImages(images) {
+  progress(`Checking ${images.length} image(s)...`);
+
+  for (const image of images) {
+    let stat;
+
+    try {
+      stat = await fsp.stat(image);
+    } catch {
+      error(`Image does not exist: ${image}`);
+      process.exit(1);
+    }
+
+    if (!stat.isFile()) {
+      error(`Not a regular file: ${image}`);
+      process.exit(1);
+    }
+
+    try {
+      await fsp.access(image, fs.constants.R_OK);
+    } catch {
+      error(`Image is not readable: ${image}`);
+      process.exit(1);
+    }
+
+    const mimeType = await detectMimeType(image);
+
+    if (!mimeType) {
+      error(`Unsupported image MIME type: ${image}`);
+      process.exit(1);
+    }
+  }
+
+  success("Images validated");
+}
+
+// ---------------------------------------------------------------------------
+// Build request
+// ---------------------------------------------------------------------------
+
+async function buildRequest({ model, prompt, temperature, maxTokens, images }) {
+  progress("Building vision model request...");
+
+  const messages = [
+    {
+      role: "user",
+      content: [
+        {
+          type: "text",
+          text: prompt,
+        },
+      ],
+    },
+  ];
+
+  for (let i = 0; i < images.length; i++) {
+    const image = images[i];
+    const imageNumber = i + 1;
+
+    progress(`Encoding image ${imageNumber}/${images.length}: ${image}`);
+
+    const mimeType = await detectMimeType(image);
+
+    const base64 = await fsp.readFile(image, {
+      encoding: "base64",
+    });
+
+    messages.push({
+      role: "user",
+      content: [
+        {
+          type: "text",
+          text: `IMAGE ${imageNumber}`,
+        },
+        {
+          type: "image_url",
+          image_url: {
+            url: `data:${mimeType};base64,${base64}`,
+          },
+        },
+      ],
+    });
+  }
+
+  success("Request prepared");
+
+  return {
+    model,
+    temperature,
+    max_tokens: maxTokens,
+    stream: true,
+    messages,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// SSE streaming
+// ---------------------------------------------------------------------------
+
+async function streamVisionRequest(url, requestBody) {
+  progress("Starting streaming vision request...");
+
+  startSpinner("Waiting for vision model response...");
+
+  process.stderr.write("[vision] fetch request:\n");
+
+  process.stderr.write(`  POST ${url}\n`);
+
+  process.stderr.write("  Content-Type: application/json\n");
+
+  let response;
+
+  try {
+    response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(requestBody),
+    });
+  } catch (err) {
+    stopSpinner();
+
+    error(`Could not connect to vision server: ${err.message}`);
+
+    process.exit(1);
+  }
+
+  if (!response.ok) {
+    stopSpinner();
+
+    let body = "";
+
+    try {
+      body = await response.text();
+    } catch {
+      // Ignore failure reading error body.
+    }
+
+    error(
+      `Vision server returned HTTP ${response.status}` +
+        (body ? `: ${body}` : ""),
+    );
+
+    process.exit(1);
+  }
+
+  if (!response.body) {
+    stopSpinner();
+
+    error("Vision server returned no response body.");
+
+    process.exit(1);
+  }
+
+  const decoder = new TextDecoder();
+
+  let buffer = "";
+  let streamStarted = false;
+
+  try {
+    for await (const chunk of response.body) {
+      buffer += decoder.decode(chunk, {
+        stream: true,
+      });
+
+      const events = buffer.split(/\r?\n\r?\n/);
+
+      buffer = events.pop() ?? "";
+
+      for (const event of events) {
+        const lines = event.split(/\r?\n/);
+
+        for (const line of lines) {
+          if (!line) {
+            continue;
+          }
+
+          if (line.startsWith(":")) {
+            continue;
+          }
+
+          if (!line.startsWith("data:")) {
+            continue;
+          }
+
+          const data = line.startsWith("data: ")
+            ? line.slice(6)
+            : line.slice(5).trimStart();
+
+          if (data === "[DONE]") {
+            continue;
+          }
+
+          let parsed;
+
+          try {
+            parsed = JSON.parse(data);
+          } catch {
+            continue;
+          }
+
+          const content = parsed?.choices?.[0]?.delta?.content;
+
+          if (typeof content === "string" && content.length > 0) {
+            if (!streamStarted) {
+              stopSpinner();
+              streamStarted = true;
+            }
+
+            process.stdout.write(content);
+          }
+        }
+      }
+    }
+
+    // Handle an event that wasn't followed by
+    // the final blank line.
+    if (buffer.trim()) {
+      const lines = buffer.split(/\r?\n/);
+
+      for (const line of lines) {
+        if (!line.startsWith("data:")) {
+          continue;
+        }
+
+        const data = line.startsWith("data: ")
+          ? line.slice(6)
+          : line.slice(5).trimStart();
+
+        if (data === "[DONE]") {
+          continue;
+        }
+
+        try {
+          const parsed = JSON.parse(data);
+
+          const content = parsed?.choices?.[0]?.delta?.content;
+
+          if (typeof content === "string" && content.length > 0) {
+            if (!streamStarted) {
+              stopSpinner();
+              streamStarted = true;
+            }
+
+            process.stdout.write(content);
+          }
+        } catch {
+          // Ignore malformed trailing event.
+        }
+      }
+    }
+  } catch (err) {
+    stopSpinner();
+
+    error(`Error while reading vision response: ${err.message}`);
+
+    process.exit(1);
+  }
+
+  stopSpinner();
+
+  if (streamStarted) {
+    process.stdout.write("\n");
+  }
+
+  success("Vision model response received");
+}
+
+// ---------------------------------------------------------------------------
+// Main
+// ---------------------------------------------------------------------------
+
+async function main() {
+  const options = parseArgs(process.argv.slice(2));
+
+  VISION_URL = options.url;
+
+  // -------------------------------------------------------------------------
+  // Numeric validation
+  // -------------------------------------------------------------------------
+
+  const temperature = Number(options.temperature);
+
+  const maxTokens = Number(options.maxTokens);
+
+  if (!Number.isFinite(temperature)) {
+    error(`Invalid temperature: ${options.temperature}`);
+
+    process.exit(2);
+  }
+
+  if (!Number.isFinite(maxTokens)) {
+    error(`Invalid max-tokens value: ${options.maxTokens}`);
+
+    process.exit(2);
+  }
+
+  // -------------------------------------------------------------------------
+  // Determine model
+  // -------------------------------------------------------------------------
+
+  if (!options.model) {
+    const loadedModel = await getLoadedModel(VISION_URL);
+
+    VISION_MODEL = loadedModel ?? FALLBACK_MODEL;
+  } else {
+    VISION_MODEL = options.model;
+  }
+
+  // -------------------------------------------------------------------------
+  // Validate images
+  // -------------------------------------------------------------------------
+
+  await validateImages(options.images);
+
+  // -------------------------------------------------------------------------
+  // Build request
+  // -------------------------------------------------------------------------
+
+  const request = await buildRequest({
+    model: VISION_MODEL,
+    prompt: options.prompt,
+    temperature,
+    maxTokens,
+    images: options.images,
+  });
+
+  // -------------------------------------------------------------------------
+  // Send request
+  // -------------------------------------------------------------------------
+
+  await streamVisionRequest(VISION_URL, request);
+}
+
+main().catch((err) => {
+  stopSpinner();
+
+  error(err.message);
+
+  process.exit(1);
+});

@@ -1,0 +1,10 @@
+conf .defaults
+conf .nodejs
+conf .playwright
+conf .skills
+conf .skills
+conf .unsloth
+conf .localbin
+rdir? ${PWD}/.git
+
+

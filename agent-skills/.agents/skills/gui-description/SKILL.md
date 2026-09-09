@@ -1,6 +1,8 @@
 ---
 name: gui-description
 description: Analyze GUI screenshots with the local vision model and produce detailed implementation-oriented descriptions of the interface.
+deps:
+  - vision-model
 ---
 
 # GUI Description

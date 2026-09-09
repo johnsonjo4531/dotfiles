@@ -1,6 +1,8 @@
 ---
 name: gui-diff
 description: Compare a current GUI screenshot against a target/reference screenshot using the local vision model and determine what implementation changes are needed.
+deps:
+  - vision-model
 ---
 
 # GUI Visual Diff
@@ -8,7 +10,7 @@ description: Compare a current GUI screenshot against a target/reference screens
 Use this skill when an implemented GUI needs to be compared against a target
 or reference screenshot.
 
-This skill builds on the `vision-model` skill.
+This skill builds on the `vision-model` skill which must be loaded before this skill
 
 The purpose is to determine:
 
@@ -267,91 +269,3 @@ over:
 
 The goal is to recover the underlying layout rule represented by the target
 design.
-
-````
-
----
-
-## One change I'd make to the architecture
-
-I'd actually make the three skills form a hierarchy:
-
-```text
-                    ┌──────────────────┐
-                    │   vision-model   │
-                    │                  │
-                    │ vision.sh        │
-                    └────────┬─────────┘
-                             │
-                 ┌───────────┴───────────┐
-                 │                       │
-        ┌────────▼────────┐    ┌────────▼────────┐
-        │ gui-description  │    │    gui-diff     │
-        │                  │    │                 │
-        │ screenshot →     │    │ current +       │
-        │ GUI specification│    │ target → diff   │
-        └──────────────────┘    └─────────────────┘
-```
-
-That gives your agent three increasingly semantic capabilities:
-
-### Level 1 — Perception
-
-```bash
-vision "What is in this image?" image.png
-```
-
-### Level 2 — Visual reverse engineering
-
-```text
-screenshot
-    ↓
-GUI specification
-```
-
-### Level 3 — Visual software development loop
-
-```text
-target screenshot
-       +
-current screenshot
-       ↓
-   visual diff
-       ↓
-implementation changes
-       ↓
-new screenshot
-       ↓
-   visual diff
-       ↓
-     repeat
-```
-
-That's particularly powerful for a coding agent because **the vision model doesn't need to know anything about your source code**. Its job is to establish what is visually true. Your main coding LLM then translates those observations into React/CSS/etc. changes.
-
-### One more thing I'd add later
-
-Once this is working, I'd consider adding a fourth tiny utility:
-
-```bash
-vision-capture
-```
-
-that knows how to capture a screenshot of the running application at a URL/window/device size. Then your agent could have a completely automated loop:
-
-```text
-modify code
-    ↓
-start/reload app
-    ↓
-capture screenshot
-    ↓
-vision diff
-    ↓
-modify code
-    ↓
-capture screenshot
-    ↓
-...
-```
-````

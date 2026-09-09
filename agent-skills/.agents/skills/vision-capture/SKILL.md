@@ -1,6 +1,8 @@
 ---
 name: vision-capture
 description: Capture screenshots of web GUIs using Playwright MCP for visual analysis, testing, and GUI comparison. Use this when a screenshot of a running web application is needed for the vision-model, gui-description, or gui-diff skills.
+deps:
+  - vision-model
 ---
 
 # Vision Capture
@@ -22,6 +24,14 @@ The responsibility of this skill is:
        image file
 
 It does not perform visual analysis itself.
+
+## Required capabilities
+
+This skill composes the following skill:
+
+- `vision-model`
+
+Load that skill before executing this skill.
 
 ## Core workflow
 

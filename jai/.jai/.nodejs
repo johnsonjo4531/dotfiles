@@ -1,0 +1,6 @@
+setenv NODE_PREFIX=${HOME}/.config/nvm/versions/node/v24.14.1
+dir .config/nvm/versions/node/v24.14.1
+dir .local/share/pnpm
+
+setenv PATH=${NODE_PREFIX}/bin:${PATH}
+
