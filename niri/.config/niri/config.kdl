@@ -355,6 +355,13 @@ window-rule {
     block-out-from "screencast"
 }
 
+// Block out other apps from screencasts.
+window-rule {
+    match app-id=r#"^discord"#
+
+    block-out-from "screencast"
+}
+
 window-rule {
   // Rounded corners for a modern look.
   geometry-corner-radius 15
